@@ -1,3 +1,4 @@
+// background.js - Final Version
 const API_BASE = "https://shieldphish.onrender.com"; // Your Render URL
 
 function showAlert(message) {
@@ -21,7 +22,11 @@ async function checkUrlAndSetIcon(tabId, url) {
     chrome.storage.local.set({ [`tab_${tabId}`]: data });
 
     if (data.label === 'phishing' || data.label === 'suspicious') {
-      chrome.action.setIcon({ path: "icons/shield-red.png", tabId: tabId });
+      console.log("Attempting to set icon to RED.");
+      chrome.action.setIcon({
+        path: { "128": "icons/shield-red.png" },
+        tabId: tabId
+      });
       // Show an immediate alert for dangerous sites
       chrome.scripting.executeScript({
         target: { tabId: tabId },
@@ -29,20 +34,31 @@ async function checkUrlAndSetIcon(tabId, url) {
         args: [`🚨 ShieldPhish Warning 🚨\n\nThis site is potentially malicious.\nReason: ${data.reasons.join(", ")}`]
       });
     } else {
-      chrome.action.setIcon({ path: "icons/shield-green.png", tabId: tabId });
+      console.log("Attempting to set icon to GREEN.");
+      chrome.action.setIcon({
+        path: { "128": "icons/shield-green.png" },
+        tabId: tabId
+      });
     }
 
   } catch (error) {
     console.error("ShieldPhish Error:", error.message);
-    // If there's an error, save an error state
     chrome.storage.local.set({ [`tab_${tabId}`]: { error: error.message } });
-    chrome.action.setIcon({ path: "icons/shield-default.png", tabId: tabId });
+    chrome.action.setIcon({
+      path: { "128": "icons/shield-default.png" },
+      tabId: tabId
+    });
   }
 }
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  // Only run on the main page load event
   if (changeInfo.status === 'complete' && tab.url && tab.url.startsWith('http')) {
-    chrome.action.setIcon({ path: "icons/shield-default.png", tabId: tabId });
+    console.log("Page load complete. Setting default icon and starting check.");
+    chrome.action.setIcon({
+      path: { "128": "icons/shield-default.png" },
+      tabId: tabId
+    });
     checkUrlAndSetIcon(tabId, tab.url);
   }
 });
