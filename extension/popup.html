@@ -9,10 +9,16 @@
       text-align: center;
       padding: 10px;
     }
+    #logo-emoji {
+      vertical-align: middle; /* Aligns the image nicely with text */
+      margin-left: 5px; /* Adds a little space between text and logo */
+      width: 24px; /* Adjust size as needed */
+      height: 24px; /* Adjust size as needed */
+    }
   </style>
 </head>
 <body>
-  <h3>ShieldPhish 🔰</h3>
+  <h3>ShieldPhish <img id="logo-emoji" src="icons/shield-emoji.png" alt="Shield Logo"></h3>
   <p id="message">Checking...</p>
   <script src="popup.js"></script>
 </body>
