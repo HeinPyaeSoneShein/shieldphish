@@ -16,41 +16,36 @@ async function checkUrlAndSetIcon(tabId, url) {
     const data = await response.json();
     chrome.storage.local.set({ [`tab_${tabId}`]: data });
 
-    if (data.label === 'phishing' || data.label === 'suspicious') {
-      // NEW: Suspicious State
-      // Keep the default blue icon
+    if (data.label === 'phishing') {
+      // STATE 1: MALICIOUS (Red Cross)
       chrome.action.setIcon({ path: { "128": "icons/shield-default.png" }, tabId: tabId });
-      // Add a yellow siren badge
-      chrome.action.setBadgeText({ text: "🚨", tabId: tabId });
-      chrome.action.setBadgeBackgroundColor({ color: "#F29900", tabId: tabId }); // A strong yellow/amber color
+      chrome.action.setBadgeText({ text: "X", tabId: tabId });
+      chrome.action.setBadgeBackgroundColor({ color: "#D93025", tabId: tabId }); // Red
+      showAlert(`🚨 ShieldPhish Warning 🚨\n\nThis site is FLAGGED AS MALICIOUS.\nReason: ${data.reasons.join(", ")}`);
 
-      // Show an immediate alert for dangerous sites
-      chrome.scripting.executeScript({
-        target: { tabId: tabId },
-        function: showAlert,
-        args: [`🚨 ShieldPhish Warning 🚨\n\nThis site is potentially malicious.\nReason: ${data.reasons.join(", ")}`]
-      });
+    } else if (data.label === 'suspicious') {
+      // STATE 2: SUSPICIOUS (Yellow Siren)
+      chrome.action.setIcon({ path: { "128": "icons/shield-default.png" }, tabId: tabId });
+      chrome.action.setBadgeText({ text: "🚨", tabId: tabId });
+      chrome.action.setBadgeBackgroundColor({ color: "#F29900", tabId: tabId }); // Yellow/Amber
+      showAlert(`🚨 ShieldPhish Warning 🚨\n\nThis site is POTENTIALLY SUSPICIOUS.\nReason: ${data.reasons.join(", ")}`);
 
     } else {
-      // NEW: Safe State
-      // Set the icon to green
+      // STATE 3: SAFE (Green Checkmark)
       chrome.action.setIcon({ path: { "128": "icons/shield-green.png" }, tabId: tabId });
-      // Add a green checkmark badge
       chrome.action.setBadgeText({ text: "✓", tabId: tabId });
-      chrome.action.setBadgeBackgroundColor({ color: "#1E8E3E", tabId: tabId }); // A strong green color
+      chrome.action.setBadgeBackgroundColor({ color: "#1E8E3E", tabId: tabId }); // Green
     }
   } catch (error) {
     console.error("ShieldPhish Error:", error.message);
     chrome.storage.local.set({ [`tab_${tabId}`]: { error: error.message } });
     chrome.action.setIcon({ path: { "128": "icons/shield-default.png" }, tabId: tabId });
-    // Ensure badge is cleared on error
     chrome.action.setBadgeText({ text: "", tabId: tabId });
   }
 }
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === 'complete' && tab.url && tab.url.startsWith('http')) {
-    // Set default icon and clear badge at the start of every check
     chrome.action.setIcon({ path: { "128": "icons/shield-default.png" }, tabId: tabId });
     chrome.action.setBadgeText({ text: "", tabId: tabId });
     checkUrlAndSetIcon(tabId, tab.url);

@@ -1,4 +1,4 @@
-# app.py - ShieldPhish Backend (Improved)
+# ~/phish-project/backend/app.py
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,25 +17,29 @@ class CheckRequest(BaseModel):
     url: str
 
 def quick_score(url: str):
-    """More sensitive heuristics to check a URL."""
+    """Heuristics with three distinct levels: benign, suspicious, and phishing."""
     score = 0.0
     reasons = []
-    
-    # Give a higher score for keywords
-    if any(k in url.lower() for k in ["login", "verify", "secure", "account", "bank", "update", "password"]):
-        score = max(score, 0.7)
-        reasons.append("suspicious_keyword")
+    url_lower = url.lower()
 
+    # High-threat indicators (likely phishing)
+    if any(k in url_lower for k in ["login", "password", "signin", "banking", "verify-account"]):
+        score = max(score, 0.8)
+        reasons.append("high_threat_keyword")
     if any(s in url for s in ["bit.ly", "t.co", "tinyurl"]):
-        score = max(score, 0.8) # Higher score for shorteners
+        score = max(score, 0.9)
         reasons.append("shortener")
 
+    # Medium-threat indicators (suspicious)
+    if any(k in url_lower for k in ["secure", "account", "update"]):
+        score = max(score, 0.5)
+        reasons.append("medium_threat_keyword")
     if re.search(r"\d{1,3}(\.\d{1,3}){3}", url):
         score = max(score, 0.6)
         reasons.append("ip_as_host")
     
-    # Adjusted thresholds
-    label = "phishing" if score >= 0.7 else ("suspicious" if score >= 0.5 else "benign")
+    # Final label assignment
+    label = "phishing" if score >= 0.8 else ("suspicious" if score >= 0.5 else "benign")
     return round(score, 3), label, reasons
 
 @app.get("/health")
