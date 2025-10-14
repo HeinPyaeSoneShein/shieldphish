@@ -1,0 +1,9 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# IDE / OS Files
+.vscode/
+.idea/
+*.DS_Store
