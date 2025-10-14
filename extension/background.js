@@ -1,4 +1,4 @@
-// ~/shieldphish-final/extension/background.js
+// ~/phish-project/extension/background.js
 const API_BASE = "https://shieldphish.onrender.com"; // Your Render URL
 
 function showAlert(message) {
@@ -17,10 +17,12 @@ async function checkUrlAndSetIcon(tabId, url) {
     chrome.storage.local.set({ [`tab_${tabId}`]: data });
 
     if (data.label === 'phishing' || data.label === 'suspicious') {
-      // Keep the default blue icon, but add a red "X" badge
+      // NEW: Suspicious State
+      // Keep the default blue icon
       chrome.action.setIcon({ path: { "128": "icons/shield-default.png" }, tabId: tabId });
-      chrome.action.setBadgeText({ text: "X", tabId: tabId });
-      chrome.action.setBadgeBackgroundColor({ color: "#D93025", tabId: tabId }); // A strong red color
+      // Add a yellow siren badge
+      chrome.action.setBadgeText({ text: "🚨", tabId: tabId });
+      chrome.action.setBadgeBackgroundColor({ color: "#F29900", tabId: tabId }); // A strong yellow/amber color
 
       // Show an immediate alert for dangerous sites
       chrome.scripting.executeScript({
@@ -30,16 +32,18 @@ async function checkUrlAndSetIcon(tabId, url) {
       });
 
     } else {
-      // Set the icon to green for safe sites
+      // NEW: Safe State
+      // Set the icon to green
       chrome.action.setIcon({ path: { "128": "icons/shield-green.png" }, tabId: tabId });
-      // IMPORTANT: Remove the badge for safe sites by setting text to empty
-      chrome.action.setBadgeText({ text: "", tabId: tabId });
+      // Add a green checkmark badge
+      chrome.action.setBadgeText({ text: "✓", tabId: tabId });
+      chrome.action.setBadgeBackgroundColor({ color: "#1E8E3E", tabId: tabId }); // A strong green color
     }
   } catch (error) {
     console.error("ShieldPhish Error:", error.message);
     chrome.storage.local.set({ [`tab_${tabId}`]: { error: error.message } });
     chrome.action.setIcon({ path: { "128": "icons/shield-default.png" }, tabId: tabId });
-    // Ensure badge is also cleared on error
+    // Ensure badge is cleared on error
     chrome.action.setBadgeText({ text: "", tabId: tabId });
   }
 }
