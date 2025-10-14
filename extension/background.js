@@ -1,6 +1,7 @@
-// ~/phish-project/extension/background.js
+// ~/phish-project/extension/background.js - FINAL CORRECTED VERSION
 const API_BASE = "https://shieldphish.onrender.com"; // Your Render URL
 
+// This function will be INJECTED into the page, not called directly.
 function showAlert(message) {
   alert(message);
 }
@@ -21,14 +22,24 @@ async function checkUrlAndSetIcon(tabId, url) {
       chrome.action.setIcon({ path: { "128": "icons/shield-default.png" }, tabId: tabId });
       chrome.action.setBadgeText({ text: "X", tabId: tabId });
       chrome.action.setBadgeBackgroundColor({ color: "#D93025", tabId: tabId }); // Red
-      showAlert(`🚨 ShieldPhish Warning 🚨\n\nThis site is FLAGGED AS MALICIOUS.\nReason: ${data.reasons.join(", ")}`);
+      // *** THE FIX IS HERE ***
+      chrome.scripting.executeScript({
+        target: { tabId: tabId },
+        function: showAlert,
+        args: [`🚨 ShieldPhish Warning 🚨\n\nThis site is FLAGGED AS MALICIOUS.\nReason: ${data.reasons.join(", ")}`]
+      });
 
     } else if (data.label === 'suspicious') {
       // STATE 2: SUSPICIOUS (Yellow Siren)
       chrome.action.setIcon({ path: { "128": "icons/shield-default.png" }, tabId: tabId });
       chrome.action.setBadgeText({ text: "🚨", tabId: tabId });
       chrome.action.setBadgeBackgroundColor({ color: "#F29900", tabId: tabId }); // Yellow/Amber
-      showAlert(`🚨 ShieldPhish Warning 🚨\n\nThis site is POTENTIALLY SUSPICIOUS.\nReason: ${data.reasons.join(", ")}`);
+      // *** THE FIX IS HERE ***
+      chrome.scripting.executeScript({
+        target: { tabId: tabId },
+        function: showAlert,
+        args: [`🚨 ShieldPhish Warning 🚨\n\nThis site is POTENTIALLY SUSPICIOUS.\nReason: ${data.reasons.join(", ")}`]
+      });
 
     } else {
       // STATE 3: SAFE (Green Checkmark)
